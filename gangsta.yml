@@ -1,0 +1,5 @@
+routes:
+  - path: /users
+    response: '{"message": "hello users"}'
+  - path: /products
+    response: '{"message": "hello products"}'
