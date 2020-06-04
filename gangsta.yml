@@ -3,5 +3,8 @@ routes:
   - path: /users
     delay: 1000
     response: '{"message": "hello users"}'
+    callback:
+      path: "http://localhost:8000/event"
+      delay: 5000
   - path: /products
     response: '{"message": "hello products"}'

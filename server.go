@@ -1,12 +1,21 @@
 package main
 
 import (
+	"bytes"
 	"github.com/valyala/fasthttp"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"time"
 )
+
+type callback struct {
+	Path   string `yaml:"path"`
+	Method string `yaml:"method"`
+	Body   string `yaml:"body"`
+	Delay  int64  `yaml:"delay"`
+}
 
 type conf struct {
 	Delay  int64   `yaml:"delay"`
@@ -14,9 +23,10 @@ type conf struct {
 }
 
 type route struct {
-	Delay    int64  `yaml:"delay"`
-	Path     string `yaml:"path"`
-	Response string `yaml:"response"`
+	Delay    int64     `yaml:"delay"`
+	Path     string    `yaml:"path"`
+	Response string    `yaml:"response"`
+	Callback *callback `yaml:"callback"`
 }
 
 var c conf
@@ -34,6 +44,14 @@ func (c *conf) getConf() *conf {
 	return c
 }
 
+func makeHttpCall(cb *callback) {
+	if cb.Delay != 0 {
+		time.Sleep(time.Duration(cb.Delay) * time.Millisecond)
+	}
+
+	http.Post(cb.Path, "application/json", bytes.NewBuffer([]byte(cb.Body)))
+}
+
 func fastHTTPHandler(ctx *fasthttp.RequestCtx) {
 	ctx.SetStatusCode(fasthttp.StatusOK)
 	routeData := m[string(ctx.Path())]
@@ -43,6 +61,9 @@ func fastHTTPHandler(ctx *fasthttp.RequestCtx) {
 	}
 	time.Sleep(time.Duration(delay) * time.Millisecond)
 	ctx.Write([]byte(routeData.Response))
+	if routeData.Callback != nil {
+		go makeHttpCall(routeData.Callback)
+	}
 }
 
 func main() {
