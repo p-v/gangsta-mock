@@ -1,27 +1,29 @@
 package main
 
 import (
-	"fmt"
 	"github.com/valyala/fasthttp"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
+	"time"
 )
 
 type conf struct {
+	Delay  int64   `yaml:"delay"`
 	Routes []route `yaml:"routes"`
 }
 
 type route struct {
+	Delay    int64  `yaml:"delay"`
 	Path     string `yaml:"path"`
 	Response string `yaml:"response"`
 }
 
+var c conf
 var m map[string]route
 
 func (c *conf) getConf() *conf {
-	fmt.Println("Reading...")
-	yamlFile, err := ioutil.ReadFile("data.yml")
+	yamlFile, err := ioutil.ReadFile("gangsta.yml")
 	if err != nil {
 		log.Printf("yaml file not retrieved #%v ", err)
 	}
@@ -35,11 +37,15 @@ func (c *conf) getConf() *conf {
 func fastHTTPHandler(ctx *fasthttp.RequestCtx) {
 	ctx.SetStatusCode(fasthttp.StatusOK)
 	routeData := m[string(ctx.Path())]
-	ctx.SetBody([]byte(routeData.Response))
+	delay := routeData.Delay
+	if delay == 0 {
+		delay = c.Delay
+	}
+	time.Sleep(time.Duration(delay) * time.Millisecond)
+	ctx.Write([]byte(routeData.Response))
 }
 
 func main() {
-	var c conf
 	c.getConf()
 	m = make(map[string]route)
 
@@ -47,5 +53,6 @@ func main() {
 		m[r.Path] = r
 	}
 
+	log.Printf("Starting server")
 	fasthttp.ListenAndServe(":8081", fastHTTPHandler)
 }
