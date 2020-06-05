@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"github.com/buaazp/fasthttprouter"
 	"github.com/valyala/fasthttp"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -73,6 +74,9 @@ func main() {
 	for _, r := range c.Routes {
 		m[r.Path] = r
 	}
+
+	router := fasthttprouter.New()
+	router.GET("/", fastHTTPHandler)
 
 	log.Printf("Starting server")
 	fasthttp.ListenAndServe(":8081", fastHTTPHandler)
