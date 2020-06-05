@@ -2,9 +2,12 @@ delay: 100
 routes:
   - path: /users
     delay: 1000
+    code: 200
     response: '{"message": "hello users"}'
     callback:
       path: "http://localhost:8000/event"
       delay: 5000
   - path: /products
+    delay: 500
+    code: 201
     response: '{"message": "hello products"}'

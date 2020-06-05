@@ -26,6 +26,7 @@ type conf struct {
 type route struct {
 	Delay    int64     `yaml:"delay"`
 	Path     string    `yaml:"path"`
+	Code     int       `yaml:"code"`
 	Response string    `yaml:"response"`
 	Callback *callback `yaml:"callback"`
 }
@@ -54,13 +55,13 @@ func makeHttpCall(cb *callback) {
 }
 
 func fastHTTPHandler(ctx *fasthttp.RequestCtx) {
-	ctx.SetStatusCode(fasthttp.StatusOK)
 	routeData := m[string(ctx.Path())]
 	delay := routeData.Delay
 	if delay == 0 {
 		delay = c.Delay
 	}
 	time.Sleep(time.Duration(delay) * time.Millisecond)
+	ctx.SetStatusCode(routeData.Code)
 	ctx.Write([]byte(routeData.Response))
 	if routeData.Callback != nil {
 		go makeHttpCall(routeData.Callback)
@@ -79,5 +80,5 @@ func main() {
 	router.GET("/", fastHTTPHandler)
 
 	log.Printf("Starting server")
-	fasthttp.ListenAndServe(":8081", fastHTTPHandler)
+	fasthttp.ListenAndServe(":8080", fastHTTPHandler)
 }
