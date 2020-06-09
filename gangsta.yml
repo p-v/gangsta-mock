@@ -1,4 +1,5 @@
 delay: 100
+callbackPlugin: "plugins/generic.so"
 routes:
   - path: /users
     delay: 1000
@@ -11,3 +12,11 @@ routes:
     delay: 500
     code: 201
     response: '{"message": "hello products"}'
+  - path: /amenities
+    delay: 500
+    code: 201
+    response: '{"message": "hello amenities"}'
+    callbackPlugin: "plugins/generic.so"
+    callback:
+      path: "http://localhost:8000/event"
+      delay: 5000

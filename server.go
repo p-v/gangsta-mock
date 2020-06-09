@@ -1,34 +1,28 @@
 package main
 
 import (
-	"bytes"
 	"github.com/buaazp/fasthttprouter"
 	"github.com/valyala/fasthttp"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"time"
 )
 
-type callback struct {
-	Path   string `yaml:"path"`
-	Method string `yaml:"method"`
-	Body   string `yaml:"body"`
-	Delay  int64  `yaml:"delay"`
-}
-
 type conf struct {
-	Delay  int64   `yaml:"delay"`
-	Routes []route `yaml:"routes"`
+	Delay          int64   `yaml:"delay"`
+	Routes         []route `yaml:"routes"`
+	CallbackPlugin string  `yaml:"callbackPlugin"`
 }
 
 type route struct {
-	Delay    int64     `yaml:"delay"`
-	Path     string    `yaml:"path"`
-	Code     int       `yaml:"code"`
-	Response string    `yaml:"response"`
-	Callback *callback `yaml:"callback"`
+	Delay          int64     `yaml:"delay"`
+	Path           string    `yaml:"path"`
+	Body           string    `yaml:"body"`
+	Code           int       `yaml:"code"`
+	Response       string    `yaml:"response"`
+	Callback       *callback `yaml:"callback"`
+	CallbackPlugin string    `yaml:"callbackPlugin"`
 }
 
 var c conf
@@ -46,14 +40,6 @@ func (c *conf) getConf() *conf {
 	return c
 }
 
-func makeHttpCall(cb *callback) {
-	if cb.Delay != 0 {
-		time.Sleep(time.Duration(cb.Delay) * time.Millisecond)
-	}
-
-	http.Post(cb.Path, "application/json", bytes.NewBuffer([]byte(cb.Body)))
-}
-
 func fastHTTPHandler(ctx *fasthttp.RequestCtx) {
 	routeData := m[string(ctx.Path())]
 	delay := routeData.Delay
@@ -64,7 +50,11 @@ func fastHTTPHandler(ctx *fasthttp.RequestCtx) {
 	ctx.SetStatusCode(routeData.Code)
 	ctx.Write([]byte(routeData.Response))
 	if routeData.Callback != nil {
-		go makeHttpCall(routeData.Callback)
+		go makeHttpCall(routeData.Response, routeData.Callback)
+	}
+
+	if routeData.CallbackPlugin != "" {
+		go makePluginCall(routeData.Body, routeData.CallbackPlugin, routeData.Callback)
 	}
 }
 
@@ -74,7 +64,11 @@ func main() {
 
 	for _, r := range c.Routes {
 		m[r.Path] = r
+		initializePlugin(r.CallbackPlugin)
 	}
+
+	// Initialize generic plugin
+	initializePlugin(c.CallbackPlugin)
 
 	router := fasthttprouter.New()
 	router.GET("/", fastHTTPHandler)
