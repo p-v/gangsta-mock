@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+var httpClient = &http.Client{Timeout: time.Second * 10}
+
 type CustomCallback func(request types.HandlerRequest) types.HandlerResponse
 
 type callback struct {
@@ -42,7 +44,23 @@ func makePluginCall(request string, pluginLoc string, cb *callback) {
 	if handlerResponse.ContentType != "" {
 		contentType = handlerResponse.ContentType
 	}
-	http.Post(callbackPath, contentType, bytes.NewBuffer([]byte(handlerResponse.ResponseBody)))
+
+	req, err := http.NewRequest("POST", callbackPath, bytes.NewBuffer([]byte(handlerResponse.ResponseBody)))
+	if err != nil {
+		log.Printf("Error read request: %v", err)
+		return
+	}
+
+	// set headers
+	req.Header.Set("Content-Type", contentType)
+	for header, value := range handlerResponse.Headers {
+		req.Header.Set(header, value)
+	}
+
+	_, err = httpClient.Do(req)
+	if err != nil {
+		log.Printf("Error occurred while calling callback: %v", err)
+	}
 }
 
 func initializePlugin(pluginLoc string) {

@@ -9,6 +9,7 @@ type HandlerResponse struct {
 	ContentType  string
 	Path         string
 	ResponseBody string
+	Headers      map[string]string
 }
 
 type CallbackHandler interface {
