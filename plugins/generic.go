@@ -1,13 +1,16 @@
 package main
 
-type CallbackHandler interface {
-	Handle(request string) string
-}
+import (
+	. "gangsta-mock/types"
+)
 
 type handler string
 
-func (h handler) Handle(request string) string {
-	return "{\"message\": \"Wad up gangsta\"}"
+func (h handler) Handle(request HandlerRequest) HandlerResponse {
+	return HandlerResponse{
+		ResponseBody: "{\"message\": \"What up gangsta\"}",
+		Path:         "http://localhost:8000/event",
+	}
 }
 
 var Handler handler

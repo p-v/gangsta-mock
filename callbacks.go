@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"gangsta-mock/types"
 	"log"
 	"net/http"
 	"os"
@@ -9,17 +10,13 @@ import (
 	"time"
 )
 
-type CustomCallback func(request string) string
+type CustomCallback func(request types.HandlerRequest) types.HandlerResponse
 
 type callback struct {
 	Path   string `yaml:"path"`
 	Method string `yaml:"method"`
 	Body   string `yaml:"body"`
 	Delay  int64  `yaml:"delay"`
-}
-
-type CallbackHandler interface {
-	Handle(request string) string
 }
 
 var callbackMap map[string]CustomCallback
@@ -34,8 +31,18 @@ func makeHttpCall(response string, cb *callback) {
 
 func makePluginCall(request string, pluginLoc string, cb *callback) {
 	callbackHander := callbackMap[pluginLoc]
-	resp := callbackHander(request)
-	http.Post(cb.Path, "application/json", bytes.NewBuffer([]byte(resp)))
+	handlerResponse := callbackHander(types.HandlerRequest{RequestBody: request, Path: cb.Path})
+
+	callbackPath := cb.Path
+	if handlerResponse.Path != "" {
+		callbackPath = handlerResponse.Path
+	}
+
+	contentType := "application/json"
+	if handlerResponse.ContentType != "" {
+		contentType = handlerResponse.ContentType
+	}
+	http.Post(callbackPath, contentType, bytes.NewBuffer([]byte(handlerResponse.ResponseBody)))
 }
 
 func initializePlugin(pluginLoc string) {
@@ -59,10 +66,11 @@ func initializePlugin(pluginLoc string) {
 		os.Exit(1)
 	}
 
-	handler, ok := plugHandler.(CallbackHandler)
+	handler, ok := plugHandler.(types.CallbackHandler)
 	if !ok {
 		log.Printf("Bad type")
-
+		log.Printf("Plugin Loc %s", pluginLoc)
+		os.Exit(1)
 	}
 
 	callbackMap[pluginLoc] = handler.Handle
