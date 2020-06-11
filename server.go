@@ -14,12 +14,16 @@ type conf struct {
 	Routes []route `yaml:"routes"`
 }
 
+type handler struct {
+	Response string `yaml:"response"`
+}
+
 type route struct {
 	Delay    int64     `yaml:"delay"`
 	Path     string    `yaml:"path"`
 	Body     string    `yaml:"body"`
 	Code     int       `yaml:"code"`
-	Response string    `yaml:"response"`
+	Handler  *handler  `yaml:"handler"`
 	Callback *callback `yaml:"callback"`
 }
 
@@ -47,7 +51,7 @@ func fastHTTPHandler(ctx *fasthttp.RequestCtx) {
 	}
 	time.Sleep(time.Duration(delay) * time.Millisecond)
 	ctx.SetStatusCode(routeData.Code)
-	ctx.Write([]byte(routeData.Response))
+	ctx.Write([]byte(routeData.Handler.Response))
 
 	callback := routeData.Callback
 
@@ -55,7 +59,7 @@ func fastHTTPHandler(ctx *fasthttp.RequestCtx) {
 		if callback.Plugin != "" {
 			go makePluginCall(string(ctx.PostBody()), callback.Plugin, path)
 		} else if routeData.Callback != nil {
-			go makeHttpCall(routeData.Response, routeData.Callback)
+			go makeHttpCall(routeData.Callback)
 		}
 	}
 

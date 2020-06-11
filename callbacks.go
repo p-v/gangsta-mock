@@ -24,7 +24,7 @@ type callback struct {
 
 var callbackMap map[string]CustomCallback
 
-func makeHttpCall(response string, cb *callback) {
+func makeHttpCall(cb *callback) {
 	if cb.Delay != 0 {
 		time.Sleep(time.Duration(cb.Delay) * time.Millisecond)
 	}
