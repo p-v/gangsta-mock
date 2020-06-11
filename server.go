@@ -41,7 +41,8 @@ func (c *conf) getConf() *conf {
 }
 
 func fastHTTPHandler(ctx *fasthttp.RequestCtx) {
-	routeData := m[string(ctx.Path())]
+	path := string(ctx.Path())
+	routeData := m[path]
 	delay := routeData.Delay
 	if delay == 0 {
 		delay = c.Delay
@@ -49,12 +50,11 @@ func fastHTTPHandler(ctx *fasthttp.RequestCtx) {
 	time.Sleep(time.Duration(delay) * time.Millisecond)
 	ctx.SetStatusCode(routeData.Code)
 	ctx.Write([]byte(routeData.Response))
-	if routeData.Callback != nil {
-		go makeHttpCall(routeData.Response, routeData.Callback)
-	}
 
 	if routeData.CallbackPlugin != "" {
-		go makePluginCall(routeData.Body, routeData.CallbackPlugin, routeData.Callback)
+		go makePluginCall(string(ctx.PostBody()), routeData.CallbackPlugin, routeData.Callback, path)
+	} else if routeData.Callback != nil {
+		go makeHttpCall(routeData.Response, routeData.Callback)
 	}
 }
 

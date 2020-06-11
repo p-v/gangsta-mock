@@ -31,9 +31,12 @@ func makeHttpCall(response string, cb *callback) {
 	http.Post(cb.Path, "application/json", bytes.NewBuffer([]byte(cb.Body)))
 }
 
-func makePluginCall(request string, pluginLoc string, cb *callback) {
+func makePluginCall(request string, pluginLoc string, cb *callback, path string) {
+	if cb.Delay != 0 {
+		time.Sleep(time.Duration(cb.Delay) * time.Millisecond)
+	}
 	callbackHander := callbackMap[pluginLoc]
-	handlerResponse := callbackHander(types.HandlerRequest{RequestBody: request, Path: cb.Path})
+	handlerResponse := callbackHander(types.HandlerRequest{RequestBody: request, Path: path})
 
 	callbackPath := cb.Path
 	if handlerResponse.Path != "" {
