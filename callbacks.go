@@ -19,6 +19,7 @@ type callback struct {
 	Method string `yaml:"method"`
 	Body   string `yaml:"body"`
 	Delay  int64  `yaml:"delay"`
+	Plugin string `yaml:"plugin"`
 }
 
 var callbackMap map[string]CustomCallback
@@ -31,24 +32,16 @@ func makeHttpCall(response string, cb *callback) {
 	http.Post(cb.Path, "application/json", bytes.NewBuffer([]byte(cb.Body)))
 }
 
-func makePluginCall(request string, pluginLoc string, cb *callback, path string) {
-	if cb.Delay != 0 {
-		time.Sleep(time.Duration(cb.Delay) * time.Millisecond)
-	}
+func makePluginCall(request string, pluginLoc string, path string) {
 	callbackHander := callbackMap[pluginLoc]
 	handlerResponse := callbackHander(types.HandlerRequest{RequestBody: request, Path: path})
-
-	callbackPath := cb.Path
-	if handlerResponse.Path != "" {
-		callbackPath = handlerResponse.Path
-	}
 
 	contentType := "application/json"
 	if handlerResponse.ContentType != "" {
 		contentType = handlerResponse.ContentType
 	}
 
-	req, err := http.NewRequest("POST", callbackPath, bytes.NewBuffer([]byte(handlerResponse.ResponseBody)))
+	req, err := http.NewRequest("POST", handlerResponse.Path, bytes.NewBuffer([]byte(handlerResponse.ResponseBody)))
 	if err != nil {
 		log.Printf("Error read request: %v", err)
 		return
@@ -66,14 +59,15 @@ func makePluginCall(request string, pluginLoc string, cb *callback, path string)
 	}
 }
 
-func initializePlugin(pluginLoc string) {
+func initializePlugin(cb *callback) {
+	if cb == nil || cb.Plugin == "" {
+		return
+	}
 	if callbackMap == nil {
 		callbackMap = make(map[string]CustomCallback)
 	}
 
-	if pluginLoc == "" {
-		return
-	}
+	pluginLoc := cb.Plugin
 
 	callbackPlugin, err := plugin.Open(pluginLoc)
 	if err != nil {

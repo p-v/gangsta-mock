@@ -10,19 +10,17 @@ import (
 )
 
 type conf struct {
-	Delay          int64   `yaml:"delay"`
-	Routes         []route `yaml:"routes"`
-	CallbackPlugin string  `yaml:"callbackPlugin"`
+	Delay  int64   `yaml:"delay"`
+	Routes []route `yaml:"routes"`
 }
 
 type route struct {
-	Delay          int64     `yaml:"delay"`
-	Path           string    `yaml:"path"`
-	Body           string    `yaml:"body"`
-	Code           int       `yaml:"code"`
-	Response       string    `yaml:"response"`
-	Callback       *callback `yaml:"callback"`
-	CallbackPlugin string    `yaml:"callbackPlugin"`
+	Delay    int64     `yaml:"delay"`
+	Path     string    `yaml:"path"`
+	Body     string    `yaml:"body"`
+	Code     int       `yaml:"code"`
+	Response string    `yaml:"response"`
+	Callback *callback `yaml:"callback"`
 }
 
 var c conf
@@ -51,11 +49,16 @@ func fastHTTPHandler(ctx *fasthttp.RequestCtx) {
 	ctx.SetStatusCode(routeData.Code)
 	ctx.Write([]byte(routeData.Response))
 
-	if routeData.CallbackPlugin != "" {
-		go makePluginCall(string(ctx.PostBody()), routeData.CallbackPlugin, routeData.Callback, path)
-	} else if routeData.Callback != nil {
-		go makeHttpCall(routeData.Response, routeData.Callback)
+	callback := routeData.Callback
+
+	if callback != nil {
+		if callback.Plugin != "" {
+			go makePluginCall(string(ctx.PostBody()), callback.Plugin, path)
+		} else if routeData.Callback != nil {
+			go makeHttpCall(routeData.Response, routeData.Callback)
+		}
 	}
+
 }
 
 func main() {
@@ -64,11 +67,8 @@ func main() {
 
 	for _, r := range c.Routes {
 		m[r.Path] = r
-		initializePlugin(r.CallbackPlugin)
+		initializePlugin(r.Callback)
 	}
-
-	// Initialize generic plugin
-	initializePlugin(c.CallbackPlugin)
 
 	router := fasthttprouter.New()
 	router.GET("/", fastHTTPHandler)
