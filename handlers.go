@@ -15,10 +15,9 @@ type handler struct {
 	Response string `yaml:"response"`
 }
 
-func nonPluginHandler(callbackFunc CallbackFunc) fasthttp.RequestHandler {
+func nonPluginHandler(callbackFunc CallbackFunc, routeData route) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
 		path := string(ctx.Path())
-		routeData := m[path]
 		delay := routeData.Delay
 		if delay == 0 {
 			delay = c.Delay
@@ -86,7 +85,7 @@ func initializeHandlerPlugin(hn *handler) types.HandlerFunc {
 
 func gangstaHandler(handlerFunc types.HandlerFunc, callbackFunc CallbackFunc, r route) fasthttp.RequestHandler {
 	if handlerFunc == nil {
-		return nonPluginHandler(callbackFunc)
+		return nonPluginHandler(callbackFunc, r)
 	}
 	return pluginHandler(handlerFunc, callbackFunc, r)
 }

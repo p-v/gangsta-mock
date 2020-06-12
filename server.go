@@ -23,7 +23,6 @@ type route struct {
 }
 
 var c conf
-var m map[string]route
 
 func (c *conf) getConf() *conf {
 	yamlFile, err := ioutil.ReadFile("gangsta.yml")
@@ -39,12 +38,10 @@ func (c *conf) getConf() *conf {
 
 func main() {
 	c.getConf()
-	m = make(map[string]route)
 
 	router := fasthttprouter.New()
 
 	for _, r := range c.Routes {
-		m[r.Path] = r
 		initializeHandler(r, router)
 	}
 
