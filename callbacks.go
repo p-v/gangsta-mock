@@ -22,8 +22,6 @@ type callback struct {
 	Plugin string `yaml:"plugin"`
 }
 
-var callbackMap map[string]CallbackFunc
-
 func makeHttpCall(cb *callback) {
 	if cb.Delay != 0 {
 		time.Sleep(time.Duration(cb.Delay) * time.Millisecond)
@@ -62,9 +60,6 @@ func initializeCallbackPlugin(cb *callback) CallbackFunc {
 	if cb == nil || cb.Plugin == "" {
 		return nil
 	}
-	if callbackMap == nil {
-		callbackMap = make(map[string]CallbackFunc)
-	}
 
 	pluginLoc := cb.Plugin
 
@@ -86,9 +81,6 @@ func initializeCallbackPlugin(cb *callback) CallbackFunc {
 		log.Printf("Plugin Loc %s", pluginLoc)
 		os.Exit(1)
 	}
-
-	// TODO think if we need this
-	callbackMap[pluginLoc] = handler.Handle
 
 	return handler.Handle
 }
