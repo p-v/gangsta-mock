@@ -51,7 +51,10 @@ func fastHTTPHandler(ctx *fasthttp.RequestCtx) {
 	}
 	time.Sleep(time.Duration(delay) * time.Millisecond)
 	ctx.SetStatusCode(routeData.Code)
-	ctx.Write([]byte(routeData.Handler.Response))
+
+	if routeData.Handler != nil {
+		ctx.Write([]byte(routeData.Handler.Response))
+	}
 
 	callback := routeData.Callback
 
