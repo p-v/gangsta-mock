@@ -12,7 +12,7 @@ import (
 
 var httpClient = &http.Client{Timeout: time.Second * 10}
 
-type CustomCallback func(request types.HandlerRequest) types.HandlerResponse
+type CallbackFunc func(request types.HandlerRequest) types.HandlerResponse
 
 type callback struct {
 	Path   string `yaml:"path"`
@@ -22,7 +22,7 @@ type callback struct {
 	Plugin string `yaml:"plugin"`
 }
 
-var callbackMap map[string]CustomCallback
+var callbackMap map[string]CallbackFunc
 
 func makeHttpCall(cb *callback) {
 	if cb.Delay != 0 {
@@ -32,9 +32,8 @@ func makeHttpCall(cb *callback) {
 	http.Post(cb.Path, "application/json", bytes.NewBuffer([]byte(cb.Body)))
 }
 
-func makePluginCall(request string, pluginLoc string, path string) {
-	callbackHander := callbackMap[pluginLoc]
-	handlerResponse := callbackHander(types.HandlerRequest{RequestBody: request, Path: path})
+func makePluginCall(request string, callbackFunc CallbackFunc, path string) {
+	handlerResponse := callbackFunc(types.HandlerRequest{RequestBody: request, Path: path})
 
 	contentType := "application/json"
 	if handlerResponse.ContentType != "" {
@@ -59,12 +58,12 @@ func makePluginCall(request string, pluginLoc string, path string) {
 	}
 }
 
-func initializePlugin(cb *callback) {
+func initializeCallbackPlugin(cb *callback) CallbackFunc {
 	if cb == nil || cb.Plugin == "" {
-		return
+		return nil
 	}
 	if callbackMap == nil {
-		callbackMap = make(map[string]CustomCallback)
+		callbackMap = make(map[string]CallbackFunc)
 	}
 
 	pluginLoc := cb.Plugin
@@ -88,5 +87,8 @@ func initializePlugin(cb *callback) {
 		os.Exit(1)
 	}
 
+	// TODO think if we need this
 	callbackMap[pluginLoc] = handler.Handle
+
+	return handler.Handle
 }

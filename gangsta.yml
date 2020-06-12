@@ -1,6 +1,7 @@
 delay: 100
 routes:
   - path: /users
+    method: "GET"
     delay: 1000
     code: 200
     handler:
@@ -9,14 +10,24 @@ routes:
       path: "http://localhost:8000/event"
       delay: 5000
   - path: /products
+    method: "GET"
     delay: 500
     code: 201
     handler:
       response: '{"message": "hello products"}'
   - path: /amenities
+    method: "GET"
     delay: 500
     code: 201
     handler:
       response: '{"message": "hello amenities"}'
+    callback:
+      plugin: "plugins/generic.so"
+  - path: /members
+    method: "GET"
+    delay: 500
+    code: 201
+    handler:
+      plugin: "plugins/handler.so"
     callback:
       plugin: "plugins/generic.so"
