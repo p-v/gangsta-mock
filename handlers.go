@@ -47,7 +47,7 @@ func pluginHandler(handlerFunc types.HandlerFunc, callbackFunc CallbackFunc, r r
 func callCb(callback *callback, callbackFunc CallbackFunc, ctx *fasthttp.RequestCtx, path string) {
 	if callback != nil {
 		if callback.Plugin != "" {
-			go makePluginCall(string(ctx.PostBody()), callbackFunc, path)
+			go makePluginCall(string(ctx.PostBody()), callbackFunc, path, ctx.QueryArgs())
 		} else {
 			go makeHttpCall(callback)
 		}

@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"gangsta-mock/types"
+	"github.com/valyala/fasthttp"
 	"log"
 	"net/http"
 	"os"
@@ -30,8 +31,12 @@ func makeHttpCall(cb *callback) {
 	http.Post(cb.Path, "application/json", bytes.NewBuffer([]byte(cb.Body)))
 }
 
-func makePluginCall(request string, callbackFunc CallbackFunc, path string) {
-	handlerResponse := callbackFunc(types.HandlerRequest{RequestBody: request, Path: path})
+func makePluginCall(request string, callbackFunc CallbackFunc, path string, queryParams fasthttp.Args) {
+	handlerResponse := callbackFunc(types.HandlerRequest{
+		RequestBody: request,
+		Path:        path,
+		QueryParams: queryParams,
+	})
 
 	contentType := "application/json"
 	if handlerResponse.ContentType != "" {
