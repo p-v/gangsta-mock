@@ -1,9 +1,12 @@
 package types
 
+import "github.com/valyala/fasthttp"
+
 type Request struct {
-	Path   string
-	Method string
-	Body   string
+	Path        string
+	Method      string
+	Body        string
+	QueryParams *fasthttp.Args
 }
 
 type Response struct {

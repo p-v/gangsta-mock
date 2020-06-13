@@ -5,7 +5,7 @@ import "github.com/valyala/fasthttp"
 type HandlerRequest struct {
 	Path        string
 	RequestBody string
-	QueryParams fasthttp.Args
+	QueryParams *fasthttp.Args
 }
 
 type HandlerResponse struct {

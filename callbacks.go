@@ -31,7 +31,7 @@ func makeHttpCall(cb *callback) {
 	http.Post(cb.Path, "application/json", bytes.NewBuffer([]byte(cb.Body)))
 }
 
-func makePluginCall(request string, callbackFunc CallbackFunc, path string, queryParams fasthttp.Args) {
+func makePluginCall(request string, callbackFunc CallbackFunc, path string, queryParams *fasthttp.Args) {
 	handlerResponse := callbackFunc(types.HandlerRequest{
 		RequestBody: request,
 		Path:        path,
