@@ -23,7 +23,7 @@ routes:
       response: '{"message": "hello amenities"}'
     callback:
       plugin: "plugins/generic.so"
-  - path: /members
+  - path: /members/:id
     method: "GET"
     delay: 500
     code: 201

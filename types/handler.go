@@ -7,6 +7,7 @@ type Request struct {
 	Method      string
 	Body        string
 	QueryParams *fasthttp.Args
+	PathParams  map[string]interface{}
 }
 
 type Response struct {

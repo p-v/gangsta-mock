@@ -35,11 +35,17 @@ func nonPluginHandler(callbackFunc CallbackFunc, routeData route) fasthttp.Reque
 
 func pluginHandler(handlerFunc types.HandlerFunc, callbackFunc CallbackFunc, r route) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
+		pathParams := make(map[string]interface{})
+
+		ctx.VisitUserValues(func(key []byte, value interface{}) {
+			pathParams[string(key)] = value
+		})
 		resp := handlerFunc(types.Request{
 			Path:        r.Path,
 			Method:      r.Method,
 			Body:        string(ctx.PostBody()),
 			QueryParams: ctx.QueryArgs(),
+			PathParams:  pathParams,
 		})
 
 		ctx.SetStatusCode(resp.Code)
