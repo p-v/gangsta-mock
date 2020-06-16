@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"github.com/buaazp/fasthttprouter"
@@ -23,6 +23,7 @@ type route struct {
 }
 
 var c conf
+var server *fasthttp.Server
 
 func (c *conf) getConf() *conf {
 	yamlFile, err := ioutil.ReadFile("gangsta.yml")
@@ -36,7 +37,7 @@ func (c *conf) getConf() *conf {
 	return c
 }
 
-func main() {
+func StartServer() {
 	c.getConf()
 
 	router := fasthttprouter.New()
@@ -46,5 +47,10 @@ func main() {
 	}
 
 	log.Printf("Starting server")
-	fasthttp.ListenAndServe(":8080", router.Handler)
+	server = &fasthttp.Server{Handler: router.Handler}
+	server.ListenAndServe(":8080")
+}
+
+func StopServer() {
+	server.Shutdown()
 }
