@@ -25,10 +25,10 @@ type route struct {
 var c conf
 var server *fasthttp.Server
 
-func (c *conf) getConf() *conf {
-	yamlFile, err := ioutil.ReadFile("gangsta.yml")
+func (c *conf) getConf(configFile string) *conf {
+	yamlFile, err := ioutil.ReadFile(configFile)
 	if err != nil {
-		log.Printf("yaml file not retrieved #%v ", err)
+		log.Fatalf("Unable to fetch configuration #%v ", err)
 	}
 	err = yaml.Unmarshal(yamlFile, c)
 	if err != nil {
@@ -37,8 +37,8 @@ func (c *conf) getConf() *conf {
 	return c
 }
 
-func StartServer() {
-	c.getConf()
+func StartServer(configFile string) {
+	c.getConf(configFile)
 
 	router := fasthttprouter.New()
 

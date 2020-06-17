@@ -6,6 +6,7 @@ import (
 )
 
 func init() {
+	startServerCmd.Flags().StringP("config", "c", "gangsta.yml", "Configuration file")
 	serverCmd.AddCommand(startServerCmd)
 	rootCmd.AddCommand(serverCmd)
 }
@@ -14,7 +15,8 @@ var startServerCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start gangsta-mock server",
 	Run: func(cmd *cobra.Command, args []string) {
-		server.StartServer()
+		configFile, _ := cmd.Flags().GetString("config")
+		server.StartServer(configFile)
 	},
 }
 
