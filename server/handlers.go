@@ -105,6 +105,11 @@ func initializeHandler(r route, router *fasthttprouter.Router) {
 	callbackFunc := initializeCallbackPlugin(r.Callback)
 	handlerFunc := initializeHandlerPlugin(r.Handler)
 
+	method := r.Method
+	if method == "" {
+		method = "GET"
+	}
+
 	// Register handler
-	router.Handle(r.Method, r.Path, gangstaHandler(handlerFunc, callbackFunc, r))
+	router.Handle(method, r.Path, gangstaHandler(handlerFunc, callbackFunc, r))
 }
