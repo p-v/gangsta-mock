@@ -87,7 +87,6 @@ func initializeHandlerPlugin(hn *handler) types.HandlerFunc {
 	rhn, ok := plugHandler.(types.RequestHandler)
 	if !ok {
 		log.Printf("Bad type")
-		log.Printf("Plugin Loc %s", pluginLoc)
 		os.Exit(1)
 	}
 

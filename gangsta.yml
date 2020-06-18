@@ -22,7 +22,7 @@ routes:
     handler:
       response: '{"message": "hello amenities"}'
     callback:
-      plugin: "plugins/generic.so"
+      plugin: "plugins/callback.so"
   - path: /members/:id
     method: "GET"
     delay: 500
@@ -30,4 +30,4 @@ routes:
     handler:
       plugin: "plugins/handler.so"
     callback:
-      plugin: "plugins/generic.so"
+      plugin: "plugins/callback.so"
